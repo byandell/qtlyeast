@@ -88,7 +88,7 @@ We first load the yeast cross object (\texttt{yeast.orf}), and compute the condi
 <<>>=
 library(qtlhot)
 library(qtlyeast)
-data(yeast.orf)
+## data(yeast.orf)
 yeast.orf <- calc.genoprob(yeast.orf, step = 2)
 @ 
 
@@ -126,7 +126,7 @@ cross$pheno <- data.frame(norm = rnorm(nind(cross)))
 \end{Sinput}
 \end{Schunk}
 <<>>=
-data(perm.orf)
+## data(perm.orf)
 summary(perm.orf)
 lod.thr <- c(summary(perm.orf, alpha = 0.05))
 @ 
@@ -142,16 +142,18 @@ Now we save only the high lods of the \texttt{scan.orf} object to save space.
 This takes considerable time, so we have actually saved the completed scans as object \texttt{scan.orf}. However, the \texttt{scan.orf} object is 203Mb, so we don't keep it in the package. Instead we have saved \texttt{highlod.orf}.
 
 <<>>=
-data(highlod.orf)
+## data(highlod.orf)
 @ 
 
 \subsection{Hotspots for Yeast Data above LOD threshold}
 
-Now we show the hotspots. We can get summary and plot from \texttt{highlod.orf}, but this is actually first turned into a \texttt{hotsize} object. We will use this directly.
+Now we show the hotspots. We can get summary and plot from \texttt{highlod.orf}, but it is sometimes more helpful to first turn it into a \texttt{hotsize} object. We use an arbitrary threshold of 80 traits per hotspot, which is passed along to \texttt{scanone} summary and plot methods, to get some handle on hotspots.
+
 <<fig=TRUE>>=
 hotsize.orf <- hotsize(highlod.orf, lod.thr = lod.thr)
-summary(hotsize.orf)
+summary(hotsize.orf, threshold = 80)
 plot(hotsize.orf)
+abline(h = 80, lwd = 2, col = "red", lty = 2)
 @ 
 
 This shows hotspots, but there is no way yet to assess their significance. To do that, we must run some further permutations across all the traits together, preserving their correlation structure. This takes even more time, so we will do it offline and show the results.
@@ -163,10 +165,10 @@ Current efforts in systems genetics have focused on the development of statistic
 
 In order to evaluate the precision of the causal predictions made by the methods we used validated causal relationships extracted from a data-base of 247 knock-out experiments in yeast (Hughes et al. 2000, Zhu et al. 2008). In each of these experiments, one gene was knocked-out, and the expression levels of the remainder genes in control and knocked-out strains were interrogated for differential expression. The set of differentially expressed genes form the knock-out signature (ko-signature) of the knocked-out gene (ko-gene), and show direct evidence of a causal effect of the ko-gene on the ko-signature genes.
 
-Next, we load a yeast annotation data.frame, \texttt{yeast.annot}, that provides the orf, gene symbol, and chromosome location (in both Mb and cM) of each one of the 5,740 transcripts. (This information will be needed to determine which ko-genes show significant QTLs.) [Need to describe where these data come from.]
+Next, we load a yeast annotation data.frame, \texttt{yeast.annot}, that provides the orf, gene symbol, and chromosome location (in both Mb and cM) of each one of the 5,740 transcripts. (This information will be needed to determine which ko-genes show significant QTLs.) Next, we load a yeast annotation (derived from the YEAST R package) data.frame, \texttt{yeast.annot}, that provides ORFs, gene names, chromosome, and position in Mb and cM.
 
 <<>>=
-data(yeast.annot)
+## data(yeast.annot)
 head(yeast.annot)
 @ 
 
@@ -175,12 +177,12 @@ Next, we load the list of ko-signatures derived from the knock-out experiments i
 %In each one of these experiments, one of the genes was knocked-out, and the expression levels of the remainder genes in control and knocked-out strains were interrogated for differential expression. The gene signature of each knock-out experiment represents the set of differentially expressed genes. We show below the first knock-out signature.
 
 <<>>=
-data(ko.list)
+## data(ko.list)
 length(ko.list)
 ko.list[[1]]
 @ 
 
-Next, we determine which of the 247 ko-genes also showed a significant QTL in our data set, according to a permutation test (Churchill and Doerge 1994) aiming to control GWER $<$ 0.05. For each one of the ko-genes with a significant QTL, that is, with LOD score above \texttt{lod.thr} = 3.47, the function \texttt{GetCandReg} returns the ko-gene's chromosome (\texttt{phys.chr}) and physical position in cM (\texttt{phys.pos}), as well as, the LOD score (\texttt{peak.lod}) at the peak position (\texttt{peak.pos}), and the chromosome where the peak is located (\texttt{peak.chr}). In total, we observed 135 ko-genes with significant QTLs. These ko-genes are our candidate regulators. We show below the information on the first 10 candidate regulators. Note that some ko-genes map to the same chromosome where they are physically located, while other map to different chromosomes.
+Next, we determine which of the 247 ko-genes also showed a significant QTL in our data set, according to a permutation test (Churchill and Doerge 1994) aiming to control GWER $<$ 0.05. For each one of the ko-genes with a significant QTL, that is, with LOD score above \texttt{lod.thr} = \Sexpr{round(lod.thr, 2)}, the function \texttt{GetCandReg} returns the ko-gene's chromosome (\texttt{phys.chr}) and physical position in cM (\texttt{phys.pos}), as well as, the LOD score (\texttt{peak.lod}) at the peak position (\texttt{peak.pos}), and the chromosome where the peak is located (\texttt{peak.chr}). In total, we observed 135 ko-genes with significant QTLs. These ko-genes are our candidate regulators. We show below the information on the first 10 candidate regulators. Note that some ko-genes map to the same chromosome where they are physically located, while other map to different chromosomes.
 
 %and the lower and upper bounds (\texttt{lower.pos} and \texttt{upper.pos}, respectively) of the 1.5-LOD support interval (Manichaikul et al. 2006). In total, we observed 46 ko-genes with significant QTLs.
 
@@ -190,21 +192,17 @@ dim(cand.reg)
 head(cand.reg)
 @ 
 
-Genes that map to positions close to their physical locations are said to map in \textit{cis} (local-linkages). Genes that map to positions away from their physical locations are said to map in \textit{trans} (distal-linkages). There is no unambiguous way the determine how close a gene needs to map to its physical location in order to be classified as cis. Our choice is to classify a gene as cis if the 1.5-LOD support interval (Manichaikul et al. 2006) around the LOD peak contains the gene's physical location, and if the LOD score at its physical location is higher the the LOD threshold. The function \texttt{GetCisCandReg} determines which of the candidate regulators map in cis. We see that only 30 out of the 135 candidate regulators, show cis-linkages. (The additional columns \texttt{peak.pos.lower} and \texttt{peak.pos.upper} show, respectively, the lower and upper bounds of the 1.5-LOD support interval around \texttt{peak.pos}.)
+Genes that map to positions close to their physical locations are said to map in \textit{cis} (local-linkages). Genes that map to positions away from their physical locations are said to map in \textit{trans} (distal-linkages). There is no unambiguous way the determine how close a gene needs to map to its physical location in order to be classified as cis. Our choice is to classify a gene as cis if the 1.5-LOD support interval (Manichaikul et al. 2006) around the LOD peak contains the gene's physical location, and if the LOD score at its physical location is higher the the LOD threshold. The function \texttt{GetCisCandReg} determines which of the candidate regulators map in cis.
 
 <<>>=
 cis.cand.reg <- GetCisCandReg(highlod.orf, cand.reg)
-cis.cand.reg
+dim(cis.cand.reg)
+head(cis.cand.reg)
 @ 
 
-Of these, 2 (YNL135C, YMR223W) have 1.5-LOD support intervals that drop below \texttt{lod.thr}. A third gene (YMR035W) is still detected, although it has a large support interval with regions that dip below \texttt{lod.thr}. Adding the argument \texttt{lod.thr} to the call to \texttt{GetCisCandReg} restricts to LOD support intervals above \texttt{lod.thr}.
+We see that only \Sexpr{nrow(cis.cand.reg)}, out of the \Sexpr{nrow(cand.reg)} candidate regulators, show cis-linkages. (The additional columns \texttt{peak.pos.lower} and \texttt{peak.pos.upper} show, respectively, the lower and upper bounds of the 1.5-LOD support interval around \texttt{peak.pos}.)
 
-<<>>=
-cis.high <- GetCisCandReg(highlod.orf, cand.reg, lod.thr)
-cis.high[[1]]
-@ 
-
-For each one of the 135 candidate ko-genes, we determined which other genes also co-mapped to the same QTL of the ko-gene. The co-mapping genes represent the putative targets of a ko-gene. The function \texttt{GetCoMappingTraits} returns a list with the putative targets of each ko-gene. A gene is included in the putative target list of a ko-gene when its LOD peak is greater than \texttt{lod.thr} and the 1.5 LOD support interval around the peak contains the location of the ko-gene's QTL. The number of targets vary from ko-gene to ko-gene (from 1 to 570), and we show below the putative targets of one ko-gene (YMR275C) with 4 putative targets. In total, the 135 candidate regulators have 31,936 targets.
+For each one of the \Sexpr{nrow(cand.reg)} candidate ko-genes, we determined which other genes also co-mapped to the same QTL of the ko-gene. The co-mapping genes represent the putative targets of a ko-gene. The function \texttt{GetCoMappingTraits} returns a list with the putative targets of each ko-gene. A gene is included in the putative target list of a ko-gene when its LOD peak is greater than \texttt{lod.thr} and the 1.5 LOD support interval around the peak contains the location of the ko-gene's QTL.
 
 <<>>=
 comap.targets <- GetCoMappingTraits(highlod.orf, cand.reg)
@@ -213,66 +211,71 @@ comap.targets[[7]]
 length(unlist(comap.targets))
 @ 
 
+The number of targets vary from ko-gene to ko-gene (from 1 to \Sexpr{max(sapply(comap.targets, length))}). We illustrate with the putative targets of one ko-gene (\Sexpr{noquote(names(comap.targets)[7])}) with \Sexpr{length(comap.targets[[7]])} putative targets. In total, the \Sexpr{nrow(cand.reg)} candidate regulators have \Sexpr{length(unlist(comap.targets))} targets.
 
-Next, we use the function \texttt{FitAllTests} to fit the causality tests of each candidate regulator ko-gene (\texttt{pheno1}) to its putative targets (\texttt{phenos}). We use the candidate regulator's QTL (\texttt{Q.chr} and \texttt{Q.pos}) as a causal anchor. This function fits: the AIC and BIC model selection criterions (Schadt et al. 2005); the AIC- and BIC-based versions of the joint, parametric and non-parametric CMST tests (Chaibub Neto et al. 2012); and the CIT test (Millstein et al. 2009). We do not run it here because this step can take a few hours, as we perform a total of 31,936 tests for each of the 9 approaches. The function \texttt{JoinKoOutputs} joins together the outputs of the 135 separate fits of the \texttt{FitAllTests} function.
+Next, we use the function \texttt{FitAllTests} to fit the causality tests of each candidate regulator ko-gene (\texttt{pheno1}) to its putative targets (\texttt{pheno2}). We use the candidate regulator's QTL (\texttt{Q.chr} and \texttt{Q.pos}) as a causal anchor. This function fits: the AIC and BIC model selection criterions (Schadt et al. 2005); the AIC- and BIC-based versions of the joint, parametric and non-parametric CMST tests (Chaibub Neto et al. 2012); and the CIT test (Millstein et al. 2009). We do not run it here because this step can take a few hours, as we perform a total of \Sexpr{length(unlist(comap.targets))} tests for each of the 9 approaches. The function \texttt{JoinTestOutputs} joins together the outputs of the \Sexpr{nrow(cand.reg)} separate fits of the \texttt{FitAllTests} function.
 
-\begin{verbatim}
-###### don't run
-
-set.seed(123456789) # we fix a seed because cit uses bootstrap
-for (k in 1 : 135) {
-  cat("trait=", k, "\n")
-  out <- FitAllTests(cross = yeast.orf,
-                     pheno1 = cand.reg[k, 1],
-                     pheno2 = comap.targets[[k]],
-                     Q.chr = cand.reg[k, 4],
-                     Q.pos = cand.reg[k, 5])
-  save(out, file=paste("output_ko_validation", cand.reg[k, 1], "RData",
-       sep = "."), compress = TRUE)
-}
-######
-ko.tests <- JoinTestOutputs(x = comap.targets)
-save(ko.tests, file = "ko.tests.RData", compress=TRUE)
-\end{verbatim}
-
-After loading the joined results we use the function \texttt{PrecTpFpMatrix} to summarize the performance of the different methods in terms of ``biologically validated" true positives, false positives and precision, of the inferred causal relations. Since we already have the results of the knock-out experiments (recall that \texttt{ko.list.all} holds the ko-signatures of the ko-genes), we define a true positive as a statistically significant causal relation between a ko-gene and a putative target gene, when the putative target gene belongs to the ko-signature of the ko-gene. Similarly, we define a false positive as a statistically significant causal relation between a ko-gene and a putative target gene when the target gene doesn't belong to the ko-signature. (For the AIC and BIC methods, that do not provide a p-value measuring the significance of the causal call, we simply use the detected causal relations in the computation of true and false positives). The ``validated precision", is computed as the ratio of true positives by the sum of true and false positives. The \texttt{PrecTpFpMatrix} computes these measures to both all ko-genes, and to cis ko-genes only. The argument \texttt{alpha} sets the significant levels at each the summaries are computed.
-
-%where a true positive is defined as an inferred causal relationship where the target gene belongs to the ko-signature of the ko-gene, and a false positive is given by an inferred causal relation where the target gene does not belong to the ko-signature.
-
-[This has the file name passed down, which is messy. Need to clean up.]
 \begin{Schunk}
 \begin{Sinput}
-> data(ko.tests)
+> set.seed(123456789) # we fix a seed because cit uses bootstrap
+> for (k in 1 : 135) {
+>   cat("trait=", k, "\n")
+>   out <- FitAllTests(cross = yeast.orf,
++                      pheno1 = cand.reg[k, 1],
++                      pheno2 = comap.targets[[k]],
++                      Q.chr = cand.reg[k, 4],
++                      Q.pos = cand.reg[k, 5])
+>   save(out, file=paste("output_ko_validation", cand.reg[k, 1], "RData",
++        sep = "."), compress = TRUE)
+> }
+> ko.tests <- JoinTestOutputs(comap.targets)
+\end{Sinput}
+\end{Schunk}
+% save(ko.tests, file = "ko.tests.RData", compress=TRUE)
+
+We are now using the Benjamini-Hochberg adjustment for the non-parametric CMST tests. Therefore to get the adjusted values, we do the following:
+
+<<>>=
+## data(ko.tests)
+adj.ko.tests <- p.adjust.np(ko.tests)
+@ 
+
+After loading the joined results we use the function \texttt{PrecTpFpMatrix} to summarize the performance of the different methods in terms of ``biologically validated" true positives, false positives and precision, of the inferred causal relations. Since we already have the results of the knock-out experiments (recall that \texttt{ko.list} holds the ko-signatures of the ko-genes), we define a true positive as a statistically significant causal relation between a ko-gene and a putative target gene, when the putative target gene belongs to the ko-signature of the ko-gene. Similarly, we define a false positive as a statistically significant causal relation between a ko-gene and a putative target gene when the target gene doesn't belong to the ko-signature. (For the AIC and BIC methods, that do not provide a p-value measuring the significance of the causal call, we simply use the detected causal relations in the computation of true and false positives). The ``validated precision", is computed as the ratio of true positives by the sum of true and false positives. The \texttt{PrecTpFpMatrix} computes these measures to both all ko-genes, and to cis ko-genes only. The argument \texttt{alpha} sets the significant levels at each the summaries are computed. Since this takes awhile, we have also stored \texttt{roc.aux} as a data object in the package.
+
+\begin{Schunk}
+\begin{Sinput}
 > roc.aux <- PrecTpFpMatrix(alpha = seq(0.01, 0.10, by = 0.01),
 +                       nms = cand.reg[, 1],
-+                       val.targets = ko.list.all,
-+                       all.orfs = names(yeast.orf$pheno),
-+                       tests = ko.tests,
++                       val.targets = ko.list,
++                       all.orfs = highlod.orf$names,
++                       tests = adj.ko.tests,
 +                       cis.index = cis.cand.reg[[2]])
 \end{Sinput}
 \end{Schunk}
-<<echo=FALSE>>=
-data(roc.aux)
+<<>>=
+## data(roc.aux)
 @ 
 
-Before we show plots, here are some preliminary plot settings and a simple plot routine that will be used repeatedly for figures.
+Before we show plots, here are some preliminary plot settings in a simple plot routine that will be used repeatedly for figures.
 
 <<>>=
-lwd <- 2
-xaxis <- seq(0.01, 0.10, by=0.01)
-my.lty <- c(rep(1, 4), rep(2, 4), 1)
-my.lty <- rep(1, 9)
-my.pch <- c(1, 21, 24, 23, 25, 2, 5, 6, 8)
-par(mfrow=c(1, 3))
-par(mar=c(5, 4.1, 4, 2) + 0.1)
-myplot <- function(sum.type, sum.label) {
+plots <- function(roc.aux, elements) {
+  par(mfrow = c(1,3))
+  par(mar=c(5, 4.1, 4, 2) + 0.1)
+  myplot(roc.aux[[elements[1]]], "Number of true positives", "(a)")
+  myplot(roc.aux[[elements[2]]], "Number of false positives", "(b)")
+  myplot(roc.aux[[elements[3]]], "Precision", "(c)")
+}
+myplot <- function(sum.type, sum.label, main = "") {
   ymax <- max(sum.type)
+  my.pch <- c(1, 21, 24, 23, 25, 2, 5, 6, 8)
+  xaxis <- seq(0.01, 0.10, by=0.01)
   yaxis <- seq(0, ymax,length.out = length(xaxis))
   plot(xaxis, yaxis, type = "n", ylab = sum.label, cex = 1.5,
-       xlab = "Target significance level", cex.axis = 1.5,
-       cex.lab = 1.7, main = "(a)", cex.main = 2)
+       xlab = "target level", cex.axis = 1.5,
+       cex.lab = 1.7, main = main, cex.main = 2)
   for (k in 1 : 9) {
-    lines(xaxis, sum.type[k,], type="b", lwd=lwd, pch=my.pch[k], cex=1.5,
+    lines(xaxis, sum.type[k,], type="b", lwd=2, pch=my.pch[k], cex=1.5,
           col = "black", bg = "black")
   }
 }
@@ -280,36 +283,7 @@ myplot <- function(sum.type, sum.label) {
 
 Below we reproduce Figure 5 of Chaibub Neto et al. (2012). This figure presents the number of inferred true positives, number of inferred false positives and the prediction precision across varying significance levels for each one of the methods. The results were computed using all 135 ko-gene/putative target lists. 
 
-\begin{figure}[!ht]
-\begin{center}
-<<label=PrecTpFpCisTrans,fig=TRUE>>=
-myplot(roc.aux$Tp1, "Number of true positives")
-myplot(roc.aux$Fp1, "Number of false positives")
-myplot(roc.aux$Prec1, "Precision")
-@ 
-%\includegraphics[angle=270, scale=0.46,clip]{rev.cis.and.trans.prec.tp.fp.eps}
-\caption{Reproduction of Figure 5 on Chaibub Neto et al. 2012. Overall number of true positives, number of false positives and precision across all 135 ko-gene/putative target lists. Asterisk represents the CIT. Empty and filled symbols represent, respectively, AIC- and BIC-based methods. Diamonds: parametric CMST. Point-down triangles: non-parametric CMST. Point-up triangles: joint-parametric CMST. Circles: AIC and BIC.}
-\label{PrecTpFpCisTrans}
-\end{center}
-\end{figure}
-
-
 Next, we reproduce Figure 6 of Chaibub Neto et al. (2012). This figure was generated using the results of the 27 cis ko-gene/putative targets lists.
-
-%presents the number of inferred true positives, number of inferred false positives and the prediction precision across varying significance levels for each one of the methods. The results were computed using all 135 ko-gene/putative target lists.
-
-\begin{figure}[!ht]
-\begin{center}
-<<label=PrecTpFpCisOnly,fig=TRUE>>=
-myplot(roc.aux$Tp2, "Number of true positives")
-myplot(roc.aux$Fp2, "Number of false positives")
-myplot(roc.aux$Prec2, "Precision")
-@ 
-%\includegraphics[angle=270, scale=0.46,clip]{rev.cis.only.prec.tp.fp.eps}
-\caption{Reproduction of Figure 6 on Chaibub Neto et al. 2012. Overall number of true positives, number of false positives and precision restricted to 27 cis ko-gene/putative target lists. Asterisk represents the CIT. Empty and filled symbols represent, respectively, AIC- and BIC-based methods. Diamonds: parametric CMST. Point-down triangles: non-parametric CMST. Point-up triangles: joint-parametric CMST. Circles: AIC and BIC.}
-\label{PrecTpFpCisOnly}
-\end{center}
-\end{figure}
 
 \section{References}
 
@@ -334,5 +308,30 @@ myplot(roc.aux$Prec2, "Precision")
 \item Zhu J., B. Zhang, E. N. Smith, B. Drees, R. B. Brem, L. Kruglyak, R. E. Bumgarner, E. E. Schadt, 2008 Integrating large-scale functional genomic data to dissect the complexity of yeast regulatory networks. Nature Genetics {\bf 40}: 854-861.
 
 \end{enumerate}
+
+\begin{figure}[!ht]
+\begin{center}
+<<label=PrecTpFpCisTrans,fig=TRUE>>=
+plots(roc.aux, c("Tp1","Fp1","Prec1"))
+@ 
+%\includegraphics[angle=270, scale=0.46,clip]{rev.cis.and.trans.prec.tp.fp.eps}
+\caption{Reproduction of Figure 5 on Chaibub Neto et al. 2012. Target significance level by overall (a) number of true positives, (b) number of false positives and (c) precision across all 135 ko-gene/putative target lists. Asterisk represents the CIT. Empty and filled symbols represent, respectively, AIC- and BIC-based methods. Diamonds: parametric CMST. Point-down triangles: non-parametric CMST. Point-up triangles: joint-parametric CMST. Circles: AIC and BIC.}
+\label{PrecTpFpCisTrans}
+\end{center}
+\end{figure}
+
+
+%presents the number of inferred true positives, number of inferred false positives and the prediction precision across varying significance levels for each one of the methods. The results were computed using all 135 ko-gene/putative target lists.
+
+\begin{figure}[!ht]
+\begin{center}
+<<label=PrecTpFpCisOnly,fig=TRUE>>=
+plots(roc.aux, c("Tp2","Fp2","Prec2"))
+@ 
+%\includegraphics[angle=270, scale=0.46,clip]{rev.cis.only.prec.tp.fp.eps}
+\caption{Reproduction of Figure 6 on Chaibub Neto et al. 2012. Target significance level by overall (a) number of true positives, (b) number of false positives and (c) precision restricted to 27 cis ko-gene/putative target lists. Asterisk represents the CIT. Empty and filled symbols represent, respectively, AIC- and BIC-based methods. Diamonds: parametric CMST. Point-down triangles: non-parametric CMST. Point-up triangles: joint-parametric CMST. Circles: AIC and BIC.}
+\label{PrecTpFpCisOnly}
+\end{center}
+\end{figure}
 
 \end{document} 

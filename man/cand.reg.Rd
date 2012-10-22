@@ -8,7 +8,8 @@
 Candidate regulators for yeast.
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of the dataset. ~~
+Find candidate regulators based on QTL mapping. Identify
+cis-acting. Find co-mapping targets.
 }
 \usage{
 data(ko.list)
@@ -35,20 +36,21 @@ The \code{ko.list} comes from that TransFac yeast database (when? version?).
 Brem Kruglyak (2005) Science
 }
 \examples{
-\dontrun{
-data(yeast.orf)
-yeast.orf <- calc.genoprob(yeast.orf, step = 2)
+library(qtlhot)
 data(highlod.orf)
 data(yeast.annot)
 data(ko.list)
-cand.reg <- GetCandReg(yeast.orf, highlod.orf, yeast.annot, names(ko.list))
-cis.cand.reg <- GetCisCandReg(yeast.orf, highlod.orf, cand.reg)
-}
-data(cand.reg)
-cand.reg[1:10,]
-data(cis.cand.reg)
-dim(cis.cand.reg[[1]])
-cis.cand.reg[[1]][1:10,]
-comap.targets <- GetCoMappingTraits(yeast.orf, highlod.orf, cand.reg)
+cand.reg <- GetCandReg(highlod.orf, yeast.annot, names(ko.list))
+dim(cand.reg)
+head(cand.reg)
+##
+cis.cand.reg <- GetCisCandReg(highlod.orf, cand.reg)
+dim(cis.cand.reg)
+head(cis.cand.reg)
+##
+comap.targets <- GetCoMappingTraits(highlod.orf, cand.reg)
+summary(sapply(comap.targets, length))
+comap.targets[[7]]
+length(unlist(comap.targets))
 }
 \keyword{datasets}

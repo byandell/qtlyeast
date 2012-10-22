@@ -1,6 +1,6 @@
 Package: qtlyeast
-Version: 1.0.2
-Date: 2012-10-02
+Version: 1.0.3
+Date: 2012-10-22
 Author: Elias Chaibub Neto <echaibub@hotmail.com> and Brian S Yandell <byandell@wisc.edu>
 Title: QTL Inference for Brem and Kruglyak 2005 yeast data.
 Description: Data and analysis based on Brem and Kruglyak 2005 yeast experiment
