@@ -249,7 +249,7 @@ After loading the joined results we use the function \texttt{PrecTpFpMatrix} to 
 +                       val.targets = ko.list,
 +                       all.orfs = highlod.orf$names,
 +                       tests = adj.ko.tests,
-+                       cis.index = cis.cand.reg[[2]])
++                       cis.index = match(cis.cand.reg[,1], cand.reg[,1]))
 \end{Sinput}
 \end{Schunk}
 <<>>=
@@ -281,9 +281,7 @@ myplot <- function(sum.type, sum.label, main = "") {
 }
 @ 
 
-Below we reproduce Figure 5 of Chaibub Neto et al. (2012). This figure presents the number of inferred true positives, number of inferred false positives and the prediction precision across varying significance levels for each one of the methods. The results were computed using all 135 ko-gene/putative target lists. 
-
-Next, we reproduce Figure 6 of Chaibub Neto et al. (2012). This figure was generated using the results of the 27 cis ko-gene/putative targets lists.
+Below we reproduce Figure 8 of Chaibub Neto et al. (2012). This figure presents the number of inferred true positives, number of inferred false positives and the prediction precision across varying significance levels for each one of the methods. The results were computed using all 135 ko-gene/putative target lists. Next, we reproduce Figure 9 of Chaibub Neto et al. (2012). This figure was generated using the results of the 27 cis ko-gene/putative targets lists.
 
 \section{References}
 
@@ -315,7 +313,7 @@ Next, we reproduce Figure 6 of Chaibub Neto et al. (2012). This figure was gener
 plots(roc.aux, c("Tp1","Fp1","Prec1"))
 @ 
 %\includegraphics[angle=270, scale=0.46,clip]{rev.cis.and.trans.prec.tp.fp.eps}
-\caption{Reproduction of Figure 5 on Chaibub Neto et al. 2012. Target significance level by overall (a) number of true positives, (b) number of false positives and (c) precision across all 135 ko-gene/putative target lists. Asterisk represents the CIT. Empty and filled symbols represent, respectively, AIC- and BIC-based methods. Diamonds: parametric CMST. Point-down triangles: non-parametric CMST. Point-up triangles: joint-parametric CMST. Circles: AIC and BIC.}
+\caption{Reproduction of Figure 8 on Chaibub Neto et al. 2012. Target significance level by overall (a) number of true positives, (b) number of false positives and (c) precision across all 135 ko-gene/putative target lists. Asterisk represents the CIT. Empty and filled symbols represent, respectively, AIC- and BIC-based methods. Diamonds: parametric CMST. Point-down triangles: non-parametric CMST. Point-up triangles: joint-parametric CMST. Circles: AIC and BIC.}
 \label{PrecTpFpCisTrans}
 \end{center}
 \end{figure}
@@ -329,7 +327,7 @@ plots(roc.aux, c("Tp1","Fp1","Prec1"))
 plots(roc.aux, c("Tp2","Fp2","Prec2"))
 @ 
 %\includegraphics[angle=270, scale=0.46,clip]{rev.cis.only.prec.tp.fp.eps}
-\caption{Reproduction of Figure 6 on Chaibub Neto et al. 2012. Target significance level by overall (a) number of true positives, (b) number of false positives and (c) precision restricted to 27 cis ko-gene/putative target lists. Asterisk represents the CIT. Empty and filled symbols represent, respectively, AIC- and BIC-based methods. Diamonds: parametric CMST. Point-down triangles: non-parametric CMST. Point-up triangles: joint-parametric CMST. Circles: AIC and BIC.}
+\caption{Reproduction of Figure 9 on Chaibub Neto et al. 2012. Target significance level by overall (a) number of true positives, (b) number of false positives and (c) precision restricted to 27 cis ko-gene/putative target lists. Asterisk represents the CIT. Empty and filled symbols represent, respectively, AIC- and BIC-based methods. Diamonds: parametric CMST. Point-down triangles: non-parametric CMST. Point-up triangles: joint-parametric CMST. Circles: AIC and BIC.}
 \label{PrecTpFpCisOnly}
 \end{center}
 \end{figure}
