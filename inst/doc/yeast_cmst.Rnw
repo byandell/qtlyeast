@@ -81,14 +81,14 @@
 
 Here we reproduce the analysis of the budding yeast genetical genomics data-set presented in Chaibub Neto et al. (2012). The data represents a cross of a standard yeast laboratory strain, and a wild isolate from a California vineyard (Brem and Kruglyak 2005). It consists of expression measurements on 5,740 transcripts measured on 112 segregant strains with dense genotype data on 2,956 markers. Processing of the expression measurements raw data was done as described in Brem and Kruglyak (2005), with an additional step of converting the processed measurements to normal quantiles by the transformation $\Phi^{-1}[(r_i - 0.5)/112]$, where $\Phi$ is the standard normal cumulative density function, and the $r_i$ are the ranks.
 
-The data were provided by Rachel Brem and further edited by Jun Zhu and Bin Zhang (formerly of Sage Bionetworks). Elias Chaibub Neto and Brian Yandell have organized the data and analysis into this R statistical package.
+The data were provided by Rachel Brem and further edited by Jun Zhu and Bin Zhang (formerly of Sage Bionetworks). Elias Chaibub Neto and Brian Yandell have organized the data and analysis into this R statistical package, \texttt{qtlyeast}, which is available through \texttt{GITHUB}.
 
 We first load the yeast cross object (\texttt{yeast.orf}), and compute the conditional genotype probabilities using Haldane's map function, genotype error rate of 0.0001, and setting the maximum distance between positions at which genotype probabilities were calculated to 2cM.
 
 <<>>=
 library(qtlhot)
 library(qtlyeast)
-## data(yeast.orf)
+## data(yeast.orf) is loaded lazily.
 yeast.orf <- calc.genoprob(yeast.orf, step = 2)
 @ 
 
@@ -126,7 +126,7 @@ cross$pheno <- data.frame(norm = rnorm(nind(cross)))
 \end{Sinput}
 \end{Schunk}
 <<>>=
-## data(perm.orf)
+## data(perm.orf) is loaded lazily.
 summary(perm.orf)
 lod.thr <- c(summary(perm.orf, alpha = 0.05))
 @ 
@@ -142,7 +142,7 @@ Now we save only the high lods of the \texttt{scan.orf} object to save space.
 This takes considerable time, so we have actually saved the completed scans as object \texttt{scan.orf}. However, the \texttt{scan.orf} object is 203Mb, so we don't keep it in the package. Instead we have saved \texttt{highlod.orf}.
 
 <<>>=
-## data(highlod.orf)
+## data(highlod.orf) is loaded lazily.
 @ 
 
 \subsection{Hotspots for Yeast Data above LOD threshold}
@@ -168,7 +168,7 @@ In order to evaluate the precision of the causal predictions made by the methods
 Next, we load a yeast annotation data.frame, \texttt{yeast.annot}, that provides the orf, gene symbol, and chromosome location (in both Mb and cM) of each one of the 5,740 transcripts. (This information will be needed to determine which ko-genes show significant QTLs.) Next, we load a yeast annotation (derived from the YEAST R package) data.frame, \texttt{yeast.annot}, that provides ORFs, gene names, chromosome, and position in Mb and cM.
 
 <<>>=
-## data(yeast.annot)
+## data(yeast.annot) is loaded lazily.
 head(yeast.annot)
 @ 
 
@@ -177,7 +177,7 @@ Next, we load the list of ko-signatures derived from the knock-out experiments i
 %In each one of these experiments, one of the genes was knocked-out, and the expression levels of the remainder genes in control and knocked-out strains were interrogated for differential expression. The gene signature of each knock-out experiment represents the set of differentially expressed genes. We show below the first knock-out signature.
 
 <<>>=
-## data(ko.list)
+## data(ko.list) is loaded lazily.
 length(ko.list)
 ko.list[[1]]
 @ 
@@ -228,7 +228,7 @@ Next, we use the function \texttt{FitAllTests} to fit the causality tests of eac
 >   save(out, file=paste("output_ko_validation", cand.reg[k, 1], "RData",
 +        sep = "."), compress = TRUE)
 > }
-> ko.tests <- JoinTestOutputs(comap.targets)
+> ko.tests <- JoinTestOutputs(comap.targets, file = "output_ko_validation")
 \end{Sinput}
 \end{Schunk}
 % save(ko.tests, file = "ko.tests.RData", compress=TRUE)
@@ -236,7 +236,7 @@ Next, we use the function \texttt{FitAllTests} to fit the causality tests of eac
 We are now using the Benjamini-Hochberg adjustment for the non-parametric CMST tests. Therefore to get the adjusted values, we do the following:
 
 <<>>=
-## data(ko.tests)
+## data(ko.tests) is loaded lazily.
 adj.ko.tests <- p.adjust.np(ko.tests)
 @ 
 
@@ -245,15 +245,14 @@ After loading the joined results we use the function \texttt{PrecTpFpMatrix} to 
 \begin{Schunk}
 \begin{Sinput}
 > roc.aux <- PrecTpFpMatrix(alpha = seq(0.01, 0.10, by = 0.01),
-+                       nms = cand.reg[, 1],
 +                       val.targets = ko.list,
 +                       all.orfs = highlod.orf$names,
 +                       tests = adj.ko.tests,
-+                       cis.index = match(cis.cand.reg[,1], cand.reg[,1]))
++                       cand.reg = cand.reg, cis.cand.reg = cis.cand.reg)
 \end{Sinput}
 \end{Schunk}
 <<>>=
-## data(roc.aux)
+## data(roc.aux) is loaded lazily.
 @ 
 
 Before we show plots, here are some preliminary plot settings in a simple plot routine that will be used repeatedly for figures.
