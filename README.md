@@ -6,7 +6,7 @@ QTL Analysis of Brem Kruglyak Yeast Data
 This R package is too large for CRAN (~15Mb). It suggests R/qtlhot (>= 0.6.7).
 To install, first do
 
-> install.packages(devtools)
+> install.packages("devtools")
 
 If on Windows, you will then need to install Rtools from http://cran.r-project.org/bin/windows/Rtools.
 This is an executable that will install some applications in c:\Rtools. 
